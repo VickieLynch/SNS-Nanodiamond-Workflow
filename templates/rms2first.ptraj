@@ -1,0 +1,3 @@
+trajin {trajectory_input}
+rms first @1-92214
+trajout {trajectory_output} charmm
