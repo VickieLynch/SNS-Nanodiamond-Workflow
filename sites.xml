@@ -19,5 +19,6 @@
         <profile namespace="env" key="PEGASUS_HOME">/project/projectdirs/m1503/pegasus/pegasus-4.4.0</profile>
         <profile namespace="globus" key="project">m1503</profile>
         <profile namespace="globus" key="queue">regular</profile>
+        <profile namespace="condor" key="periodic_remove">False</profile>
     </site>
 </sitecatalog>
