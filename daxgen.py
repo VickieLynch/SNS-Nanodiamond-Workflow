@@ -112,7 +112,6 @@ class RefinementWorkflow(object):
         path = os.path.join(self.outdir, name)
         kw = {
             "trajectory_input": "production_%s.dcd" % epsilon,
-            "trajectory_fit": "ptraj_%s.fit" % epsilon,
             "trajectory_output": "ptraj_%s.dcd" % epsilon
         }
         format_template("rms2first.ptraj", path, **kw)
@@ -190,7 +189,6 @@ class RefinementWorkflow(object):
 
             # Ptraj files
             ptraj_conf = File("ptraj_%s.conf" % epsilon)
-            ptraj_fit = File("ptraj_%s.fit" % epsilon)
             ptraj_dcd = File("ptraj_%s.dcd" % epsilon)
 
             # Sassena incoherent files
@@ -248,12 +246,11 @@ class RefinementWorkflow(object):
 
             # ptraj job
             ptrajjob = Job(namespace="amber", name="ptraj", node_label="amber_ptraj_%s" % epsilon)
-            ptrajjob.addArguments(structure)
+            ptrajjob.addArguments(coordinates)
             ptrajjob.setStdin(ptraj_conf)
-            ptrajjob.uses(structure, link=Link.INPUT)
+            ptrajjob.uses(coordinates, link=Link.INPUT)
             ptrajjob.uses(ptraj_conf, link=Link.INPUT)
             ptrajjob.uses(prod_dcd, link=Link.INPUT)
-            ptrajjob.uses(ptraj_fit, link=Link.OUTPUT, transfer=True)
             ptrajjob.uses(ptraj_dcd, link=Link.OUTPUT, transfer=True)
             ptrajjob.profile("globus", "jobtype", "single")
             ptrajjob.profile("globus", "maxwalltime", "60")
