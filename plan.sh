@@ -39,5 +39,4 @@ pegasus-plan \
     --sites $SITE \
     --output-site $OUTPUT_SITE \
     --cleanup leaf \
-    --force
 

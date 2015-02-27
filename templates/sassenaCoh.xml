@@ -22,7 +22,7 @@
           </selections>
         </sample>
         <stager>
-          <target>system</target>
+          <target>rnaH</target>
         </stager>
         <scattering>
             <type>all</type>
