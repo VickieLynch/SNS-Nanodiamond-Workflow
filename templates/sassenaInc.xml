@@ -14,7 +14,7 @@
             <selection>
               <name>rnaH</name>
               <type>file</type>
-              <file>rnaH.pdb</file>
+              <file>{sassena_pdb}</file>
               <format>pdb</format>
               <selector>beta</selector>
               <expression>1|1\.0|1\.00</expression>

@@ -2,8 +2,68 @@
 import os
 import sys
 import string
+import subprocess
 from ConfigParser import ConfigParser
 from Pegasus.DAX3 import *
+from Tkinter import *
+import tkSimpleDialog
+
+class MyDialog(tkSimpleDialog.Dialog):
+
+    def body(self, master):
+
+        self.label_text = []
+        self.label_name = []
+        parameters = []
+        try:
+            # Read user input parameters
+            user_input = open('test.cfg', 'r')
+            self.header = user_input.readline()
+            # while True:
+            for i in range(38):
+                lineString = user_input.readline()
+                lineList = lineString.split()
+                if len(lineList) < 2:  # check for blank record
+                    continue
+                if lineList[0] == "#":  # check for commentd
+                    self.label_text.append( lineString )
+                else:
+                    lineList = lineString.split("=")
+                    self.label_name.append(lineList[0])
+                    parameters.append(lineList[1])
+            user_input.close()
+        except:
+            for i in range(16):
+                parameters.append('')
+
+        Message(master,
+            text = (
+                "The DAX generator will create a separate pipeline of jobs for each value of epsilon "
+                + "\n\nDefault user input values are obtained from test.cfg if it exists. A new test.cfg file will be written."),
+            anchor=E, aspect=1000, bg='yellow').grid(row=0, columnspan=2)
+
+        for i in range( len( self.label_text) ):
+            j = i+1
+            Label(master, text = self.label_text[i]).grid(row = j, column = 1, sticky = W)
+
+        # Populate entry boxes with default values
+        self.entry = []
+        number_of_params = len( parameters )
+        for i in range(number_of_params):
+            self.entry.append( Entry( master, width = 30) )
+            self.entry[i].insert( 0, parameters[i] )
+            j = i+1
+            self.entry[i].grid( row = j, column = 0, sticky = W )
+
+    def apply(self):
+
+        self.result = []
+        for i in range ( len(self.entry) ):
+            if len( self.entry[i].get() ) == 0:  # check for blank input
+                self.result.append( '0' )
+                continue
+            self.result.append( self.entry[i].get() )
+
 
 DAXGEN_DIR = os.path.dirname(os.path.realpath(__file__))
 TEMPLATE_DIR = os.path.join(DAXGEN_DIR, "templates")
@@ -301,6 +361,32 @@ def main():
 
     configfile = sys.argv[1]
     outdir = sys.argv[2]
+    root = Tk()
+    root.withdraw()
+    root.title("Pegasus input")
+    d = MyDialog(root)
+    
+    epsilons = d.result[0]
+    temperature = float(d.result[1])
+    structure = d.result[2]
+    sassena_pdb = d.result[3]
+    equilibrate_steps = int(d.result[4])
+    production_steps = int(d.result[5])
+    coordinates = d.result[6]
+    fixed_pdb = d.result[7]
+    extended_system = d.result[8]
+    bin_coordinates = d.result[9]
+    bin_velocities  = d.result[10]
+    sassena_db = d.result[11]
+    # Write or over-write anvred3.inp file
+    user_input = open( configfile, 'w' )
+    user_input.write( d.header + '\n' )
+    for i in range( len( d.result ) ):
+        user_input.write( d.label_text[i] + d.label_name[i] + '=' + d.result[i] + '\n' )
+    user_input.close()
+
+
+
 
     if not os.path.isfile(configfile):
         raise Exception("No such file: %s" % configfile)
@@ -319,7 +405,11 @@ def main():
     # Generate the workflow in outdir based on the config file
     workflow = RefinementWorkflow(outdir, config)
     workflow.generate_workflow()
-
+    return_code = subprocess.call("myproxy-logon -s nerscca.nersc.gov:7512 -t 720 -T -l vlynch ", shell=True)
+    proc = subprocess.Popen(['./plan.sh', outdir], stdout=subprocess.PIPE) 
+    for line in proc.stdout:
+        if "pegasus-run" in line:
+            return_code = subprocess.call(line, shell=True)
 
 if __name__ == '__main__':
     main()
